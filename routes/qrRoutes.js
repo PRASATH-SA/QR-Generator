@@ -80,6 +80,17 @@ router.put('/:id', authenticate, async (req, res) => {
     }
 });
 
+// Delete a QR code
+router.delete('/:id', authenticate, async (req, res) => {
+    try {
+        const qr = await QRCodeModel.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+        if (!qr) return res.status(404).json({ error: 'QR not found or not authorized' });
+        res.json({ message: 'QR code deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Dynamic QR Redirection
 router.get('/d/:shortId', async (req, res) => {
     try {

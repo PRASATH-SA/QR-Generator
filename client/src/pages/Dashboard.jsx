@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Download, Lock } from 'lucide-react';
+import { Crown, Download, Lock, Trash2 } from 'lucide-react';
 import QRCodeStyling from 'qr-code-styling';
 import { API_BASE } from '../config';
 import appLogo from '../assets/logo.png';
@@ -127,6 +127,19 @@ const Dashboard = () => {
       alert("Target updated successfully!");
     } catch (err) {
       alert("Failed to update target: " + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleDeleteQR = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this QR code?")) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE}/api/qr/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchQrs();
+    } catch (err) {
+      alert("Failed to delete QR code: " + (err.response?.data?.error || err.message));
     }
   };
 
@@ -377,6 +390,9 @@ const Dashboard = () => {
                     Edit
                   </button>
                 )}
+                <button type="button" onClick={() => handleDeleteQR(qr._id)} className="btn btn-outline" style={{ padding: '0.5rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }} title="Delete QR Code">
+                  <Trash2 size={14} />
+                </button>
               </div>
             </div>
           ))}
