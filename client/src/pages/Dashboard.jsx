@@ -59,7 +59,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (qrRef.current && user) {
       const logoUrl = user.tier === 'free' ? appLogo : (customLogo || (user.customLogoUrl ? (user.customLogoUrl.startsWith('http') ? user.customLogoUrl : `${API_BASE}${user.customLogoUrl}`) : appLogo));
-      const qrPreviewData = qrType === 'dynamic' ? `${API_BASE}/api/qr/d/${shortId}` : (computedData || 'https://qrgenius.prasath.in');
+      const qrPreviewData = qrType === 'dynamic' ? `https://qr.prasath.in/api/qr/d/${shortId}` : (computedData || 'https://qrgenius.prasath.in');
 
       qrCode.current.update({
         data: qrPreviewData,
@@ -202,9 +202,8 @@ const Dashboard = () => {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
                   <input type="radio" name="qrType" value="static" checked={qrType === 'static'} onChange={() => setQrType('static')} /> Static
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: user?.tier === 'paid' ? 'pointer' : 'not-allowed', color: user?.tier === 'paid' ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                  <input type="radio" name="qrType" value="dynamic" checked={qrType === 'dynamic'} onChange={() => user?.tier === 'paid' && setQrType('dynamic')} disabled={user?.tier !== 'paid'} /> Dynamic
-                  {user?.tier !== 'paid' && <Lock size={14} />}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                  <input type="radio" name="qrType" value="dynamic" checked={qrType === 'dynamic'} onChange={() => setQrType('dynamic')} /> Dynamic
                 </label>
               </div>
             </div>
@@ -351,7 +350,7 @@ const Dashboard = () => {
                    qrCode.current.update({ width: 250, height: 250 });
                 });
              }}>
-                <Download size={16} /> Download
+                <Download size={16} /> DOWNLOAD
              </button>
           </div>
         </div>
@@ -371,7 +370,7 @@ const Dashboard = () => {
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <a href={qr.qrImageUrl} download={`qr-${qr._id}.png`} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem' }}>
-                  <Download size={14} /> DL
+                  <Download size={14} /> DOWNLOAD
                 </a>
                 {qr.type === 'dynamic' && user?.tier === 'paid' && (
                   <button type="button" onClick={() => handleEditDynamic(qr)} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem' }}>
