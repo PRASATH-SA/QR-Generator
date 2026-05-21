@@ -31,10 +31,12 @@ app.use('/api/qr', qrRoutes);
 app.use('/api/payments', paymentRoutes);
 
 // Monolithic Setup - Serve React App
-app.use(express.static(path.join(__dirname, 'client', 'dist')));
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'client', 'dist', 'index.html'));
-});
+if (!process.env.VERCEL) {
+    app.use(express.static(path.join(__dirname, 'client', 'dist')));
+    app.use((req, res) => {
+        res.sendFile(path.resolve(__dirname, 'client', 'dist', 'index.html'));
+    });
+}
 
 const PORT = process.env.PORT || 5000;
 
