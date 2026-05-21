@@ -16,18 +16,19 @@
   "env": {
     "PUBLIC_URL": "https://neighbor-view-hardware-convention.trycloudflare.com"
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/server.js"
+      "src": "/api/(.*)",
+      "dest": "/server.js"
     },
     {
-      "source": "/uploads/(.*)",
-      "destination": "/server.js"
+      "src": "/uploads/(.*)",
+      "dest": "/server.js"
     },
+    { "handle": "filesystem" },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
