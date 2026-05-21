@@ -20,7 +20,7 @@ const authenticate = (req, res, next) => {
 // Generate QR Code (Save)
 router.post('/generate', authenticate, async (req, res) => {
     try {
-        const { type, data, blockColor, eyeColor, pattern, eyePattern, logo, qrImageUrl } = req.body;
+        const { type, data, blockColor, eyeColor, pattern, eyePattern, logo, qrImageUrl, shortId } = req.body;
         
         // Enforce rules
         let finalLogo = 'default';
@@ -31,6 +31,7 @@ router.post('/generate', authenticate, async (req, res) => {
         const newQR = new QRCodeModel({
             userId: req.user.id,
             type,
+            shortId,
             data,
             design: {
                 logo: finalLogo,
@@ -59,11 +60,31 @@ router.get('/', authenticate, async (req, res) => {
     }
 });
 
-// Dynamic QR Redirection
-router.get('/:id', async (req, res) => {
+// Update dynamic QR code (Premium only)
+router.put('/:id', authenticate, async (req, res) => {
     try {
-        const qr = await QRCodeModel.findById(req.params.id);
+        if (req.user.tier !== 'paid') {
+            return res.status(403).json({ error: 'Only premium users can edit dynamic QR codes' });
+        }
+        const { data } = req.body;
+        const qr = await QRCodeModel.findOne({ _id: req.params.id, userId: req.user.id });
+        
         if (!qr) return res.status(404).json({ error: 'QR not found' });
+        if (qr.type !== 'dynamic') return res.status(400).json({ error: 'Only dynamic QR codes can be edited' });
+
+        qr.data = data;
+        await qr.save();
+        res.json(qr);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Dynamic QR Redirection
+router.get('/d/:shortId', async (req, res) => {
+    try {
+        const qr = await QRCodeModel.findOne({ shortId: req.params.shortId });
+        if (!qr) return res.status(404).send('QR not found or inactive');
         
         if (qr.type === 'dynamic') {
             qr.scans += 1;
@@ -71,7 +92,7 @@ router.get('/:id', async (req, res) => {
         }
         res.redirect(qr.data);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).send(err.message);
     }
 });
 

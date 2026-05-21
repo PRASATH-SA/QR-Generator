@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const qrCodeSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: { type: String, enum: ['static', 'dynamic'], default: 'static' },
+    shortId: { type: String, unique: true, sparse: true }, // For dynamic QR redirection
     data: { type: String, required: true }, // The URL or text encoded
     design: {
         logo: { type: String, default: 'default' }, // 'default' for 'P', or a custom URL

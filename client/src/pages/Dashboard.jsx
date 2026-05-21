@@ -7,6 +7,8 @@ import { API_BASE } from '../config';
 import appLogo from '../assets/logo.png';
 
 const Dashboard = () => {
+  const [qrType, setQrType] = useState('static');
+  const [shortId, setShortId] = useState(() => Math.random().toString(36).substring(2, 8));
   const [inputType, setInputType] = useState('url');
   const [inputData, setInputData] = useState({ url: '', text: '', upiId: '', upiName: '', upiAmount: '', email: '', phone: '' });
   const [blockColor, setBlockColor] = useState('#000000');
@@ -57,9 +59,10 @@ const Dashboard = () => {
   useEffect(() => {
     if (qrRef.current && user) {
       const logoUrl = user.tier === 'free' ? appLogo : (customLogo || (user.customLogoUrl ? (user.customLogoUrl.startsWith('http') ? user.customLogoUrl : `${API_BASE}${user.customLogoUrl}`) : appLogo));
-      
+      const qrPreviewData = qrType === 'dynamic' ? `${API_BASE}/api/qr/d/${shortId}` : (computedData || 'https://qrgenius.prasath.in');
+
       qrCode.current.update({
-        data: computedData || 'https://qrgenius.prasath.in',
+        data: qrPreviewData,
         dotsOptions: { color: blockColor, type: pattern },
         cornersSquareOptions: { color: eyeColor, type: eyePattern },
         cornersDotOptions: { color: eyeColor, type: eyePattern === 'square' ? 'square' : 'dot' },
@@ -78,7 +81,7 @@ const Dashboard = () => {
         }
       }).catch(err => console.error("Could not capture QR Base64"));
     }
-  }, [computedData, blockColor, eyeColor, pattern, eyePattern, user, customLogo]);
+  }, [computedData, blockColor, eyeColor, pattern, eyePattern, user, customLogo, qrType, shortId]);
 
   const fetchQrs = async () => {
     try {
@@ -99,15 +102,31 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_BASE}/api/qr/generate`, 
-        { type: 'static', data: computedData, blockColor, eyeColor, pattern, eyePattern, logo: 'default', qrImageUrl: qrBase64 },
+        { type: qrType, shortId: qrType === 'dynamic' ? shortId : undefined, data: computedData, blockColor, eyeColor, pattern, eyePattern, logo: 'default', qrImageUrl: qrBase64 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setInputData({ url: '', text: '', upiId: '', upiName: '', upiAmount: '', email: '', phone: '' });
+      setShortId(Math.random().toString(36).substring(2, 8));
       fetchQrs();
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditDynamic = async (qr) => {
+    const newData = window.prompt("Enter new target data (URL, text, etc):", qr.data);
+    if (!newData || newData === qr.data) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE}/api/qr/${qr._id}`, { data: newData }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchQrs();
+      alert("Target updated successfully!");
+    } catch (err) {
+      alert("Failed to update target: " + (err.response?.data?.error || err.message));
     }
   };
 
@@ -177,6 +196,19 @@ const Dashboard = () => {
         <div className="glass" style={{ padding: '2rem' }}>
           <h3 className="mb-4">Create & Customize</h3>
           <form onSubmit={handleGenerate}>
+            <div className="input-group">
+              <label>QR Code Type</label>
+              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                  <input type="radio" name="qrType" value="static" checked={qrType === 'static'} onChange={() => setQrType('static')} /> Static
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: user?.tier === 'paid' ? 'pointer' : 'not-allowed', color: user?.tier === 'paid' ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                  <input type="radio" name="qrType" value="dynamic" checked={qrType === 'dynamic'} onChange={() => user?.tier === 'paid' && setQrType('dynamic')} disabled={user?.tier !== 'paid'} /> Dynamic
+                  {user?.tier !== 'paid' && <Lock size={14} />}
+                </label>
+              </div>
+            </div>
+
             <div className="input-group">
               <label>Input Type</label>
               <select className="input-field" value={inputType} onChange={e => setInputType(e.target.value)}>
@@ -333,10 +365,20 @@ const Dashboard = () => {
               <img src={qr.qrImageUrl} alt="QR Code" style={{ width: '100%', borderRadius: '8px', marginBottom: '0.5rem' }} />
               <div style={{ fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '0.5rem' }}>
                 {qr.data}
+                {qr.type === 'dynamic' && (
+                  <div style={{ fontSize: '0.75rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>Dynamic ({qr.scans || 0} scans)</div>
+                )}
               </div>
-              <a href={qr.qrImageUrl} download={`qr-${qr._id}.png`} className="btn btn-outline" style={{ padding: '0.5rem', width: '100%', fontSize: '0.8rem' }}>
-                <Download size={14} /> Download
-              </a>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <a href={qr.qrImageUrl} download={`qr-${qr._id}.png`} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem' }}>
+                  <Download size={14} /> DL
+                </a>
+                {qr.type === 'dynamic' && user?.tier === 'paid' && (
+                  <button type="button" onClick={() => handleEditDynamic(qr)} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem' }}>
+                    Edit
+                  </button>
+                )}
+              </div>
             </div>
           ))}
           {qrs.length === 0 && <p className="text-muted">No QR codes generated yet.</p>}
