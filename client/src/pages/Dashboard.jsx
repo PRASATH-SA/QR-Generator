@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Crown, Download, Lock } from 'lucide-react';
 import QRCodeStyling from 'qr-code-styling';
 import { API_BASE } from '../config';
+import appLogo from '../assets/logo.png';
+
 const Dashboard = () => {
-  const [data, setData] = useState('');
+  const [inputType, setInputType] = useState('url');
+  const [inputData, setInputData] = useState({ url: '', text: '', upiId: '', upiName: '', upiAmount: '', email: '', phone: '' });
   const [blockColor, setBlockColor] = useState('#000000');
   const [eyeColor, setEyeColor] = useState('#000000');
   const [pattern, setPattern] = useState('square');
@@ -15,6 +18,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [qrBase64, setQrBase64] = useState('');
   const [customLogo, setCustomLogo] = useState('');
+  const [downloadRes, setDownloadRes] = useState('500');
 
   const navigate = useNavigate();
   const qrRef = useRef(null);
@@ -24,6 +28,17 @@ const Dashboard = () => {
     margin: 10,
     imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 5 }
   }));
+
+  const computedData = useMemo(() => {
+    switch (inputType) {
+      case 'text': return inputData.text;
+      case 'upi': return `upi://pay?pa=${inputData.upiId}&pn=${inputData.upiName}${inputData.upiAmount ? `&am=${inputData.upiAmount}` : ''}`;
+      case 'email': return `mailto:${inputData.email}`;
+      case 'phone': return `tel:${inputData.phone}`;
+      case 'url':
+      default: return inputData.url;
+    }
+  }, [inputType, inputData]);
 
   useEffect(() => {
     const fetchUser = () => {
@@ -41,12 +56,10 @@ const Dashboard = () => {
   // Update QR code live preview
   useEffect(() => {
     if (qrRef.current && user) {
-      // SVG with width and height so qr-code-styling can render it
-      const defaultPLogo = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDgiIGZpbGw9IiNmZmYiLz48dGV4dCB4PSI1MCIgeT0iNzAiIGZvbnQtc2l6ZT0iNjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2MzY2ZjEiPlA8L3RleHQ+PC9zdmc+';
-      const logoUrl = user.tier === 'free' ? defaultPLogo : (customLogo || (user.customLogoUrl ? (user.customLogoUrl.startsWith('http') ? user.customLogoUrl : `${API_BASE}${user.customLogoUrl}`) : ''));
+      const logoUrl = user.tier === 'free' ? appLogo : (customLogo || (user.customLogoUrl ? (user.customLogoUrl.startsWith('http') ? user.customLogoUrl : `${API_BASE}${user.customLogoUrl}`) : appLogo));
       
       qrCode.current.update({
-        data: data || 'https://qrgenius.com',
+        data: computedData || 'https://qrgenius.com',
         dotsOptions: { color: blockColor, type: pattern },
         cornersSquareOptions: { color: eyeColor, type: eyePattern },
         cornersDotOptions: { color: eyeColor, type: eyePattern === 'square' ? 'square' : 'dot' },
@@ -65,7 +78,7 @@ const Dashboard = () => {
         }
       }).catch(err => console.error("Could not capture QR Base64"));
     }
-  }, [data, blockColor, eyeColor, pattern, eyePattern, user]);
+  }, [computedData, blockColor, eyeColor, pattern, eyePattern, user, customLogo]);
 
   const fetchQrs = async () => {
     try {
@@ -81,15 +94,15 @@ const Dashboard = () => {
 
   const handleGenerate = async (e) => {
     e.preventDefault();
-    if (!data) return;
+    if (!computedData) return;
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_BASE}/api/qr/generate`, 
-        { type: 'static', data, blockColor, eyeColor, pattern, eyePattern, logo: 'default', qrImageUrl: qrBase64 },
+        { type: 'static', data: computedData, blockColor, eyeColor, pattern, eyePattern, logo: 'default', qrImageUrl: qrBase64 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setData('');
+      setInputData({ url: '', text: '', upiId: '', upiName: '', upiAmount: '', email: '', phone: '' });
       fetchQrs();
     } catch (err) {
       console.error(err);
@@ -165,9 +178,56 @@ const Dashboard = () => {
           <h3 className="mb-4">Create & Customize</h3>
           <form onSubmit={handleGenerate}>
             <div className="input-group">
-              <label>Data URL / Text</label>
-              <input type="text" className="input-field" value={data} onChange={e => setData(e.target.value)} placeholder="https://example.com" />
+              <label>Input Type</label>
+              <select className="input-field" value={inputType} onChange={e => setInputType(e.target.value)}>
+                <option value="url">URL</option>
+                <option value="text">Text</option>
+                <option value="email">Email Address</option>
+                <option value="phone">Phone Number</option>
+                <option value="upi">UPI Payment</option>
+              </select>
             </div>
+            
+            {inputType === 'url' && (
+              <div className="input-group">
+                <label>URL</label>
+                <input type="url" className="input-field" value={inputData.url} onChange={e => setInputData({...inputData, url: e.target.value})} placeholder="https://example.com" />
+              </div>
+            )}
+            {inputType === 'text' && (
+              <div className="input-group">
+                <label>Text</label>
+                <textarea className="input-field" value={inputData.text} onChange={e => setInputData({...inputData, text: e.target.value})} placeholder="Enter your text here" rows="3" />
+              </div>
+            )}
+            {inputType === 'email' && (
+              <div className="input-group">
+                <label>Email Address</label>
+                <input type="email" className="input-field" value={inputData.email} onChange={e => setInputData({...inputData, email: e.target.value})} placeholder="example@email.com" />
+              </div>
+            )}
+            {inputType === 'phone' && (
+              <div className="input-group">
+                <label>Phone Number</label>
+                <input type="tel" className="input-field" value={inputData.phone} onChange={e => setInputData({...inputData, phone: e.target.value})} placeholder="+1234567890" />
+              </div>
+            )}
+            {inputType === 'upi' && (
+              <div className="grid-2" style={{ gap: '1rem' }}>
+                <div className="input-group">
+                  <label>UPI ID</label>
+                  <input type="text" className="input-field" value={inputData.upiId} onChange={e => setInputData({...inputData, upiId: e.target.value})} placeholder="john@upi" />
+                </div>
+                <div className="input-group">
+                  <label>Payee Name</label>
+                  <input type="text" className="input-field" value={inputData.upiName} onChange={e => setInputData({...inputData, upiName: e.target.value})} placeholder="John Doe" />
+                </div>
+                <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                  <label>Amount (Optional)</label>
+                  <input type="number" className="input-field" value={inputData.upiAmount} onChange={e => setInputData({...inputData, upiAmount: e.target.value})} placeholder="0.00" />
+                </div>
+              </div>
+            )}
             
             <div className="grid-2" style={{ gap: '1rem' }}>
               <div className="input-group">
@@ -243,7 +303,25 @@ const Dashboard = () => {
 
         <div className="glass" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h3 className="mb-4">Live Preview</h3>
-          <div ref={qrRef} style={{ background: '#fff', padding: '10px', borderRadius: '12px' }} />
+          <div ref={qrRef} style={{ background: '#fff', padding: '10px', borderRadius: '12px', marginBottom: '1.5rem' }} />
+          
+          <div className="grid-2" style={{ width: '100%', gap: '1rem' }}>
+             <select className="input-field" value={downloadRes} onChange={e => setDownloadRes(e.target.value)} style={{ padding: '0.5rem' }}>
+                <option value="250">250x250 (Small)</option>
+                <option value="500">500x500 (Medium)</option>
+                <option value="1000">1000x1000 (Large)</option>
+                <option value="2000">2000x2000 (Print)</option>
+             </select>
+             <button type="button" className="btn btn-outline" onClick={() => {
+                const res = parseInt(downloadRes);
+                qrCode.current.update({ width: res, height: res });
+                qrCode.current.download({ extension: 'png', name: 'qr-code-hq' }).then(() => {
+                   qrCode.current.update({ width: 250, height: 250 });
+                });
+             }}>
+                <Download size={16} /> Download
+             </button>
+          </div>
         </div>
       </div>
 
