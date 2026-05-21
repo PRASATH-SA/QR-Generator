@@ -59,7 +59,7 @@ const Dashboard = () => {
       const logoUrl = user.tier === 'free' ? appLogo : (customLogo || (user.customLogoUrl ? (user.customLogoUrl.startsWith('http') ? user.customLogoUrl : `${API_BASE}${user.customLogoUrl}`) : appLogo));
       
       qrCode.current.update({
-        data: computedData || 'https://qrgenius.com',
+        data: computedData || 'https://qrgenius.prasath.in',
         dotsOptions: { color: blockColor, type: pattern },
         cornersSquareOptions: { color: eyeColor, type: eyePattern },
         cornersDotOptions: { color: eyeColor, type: eyePattern === 'square' ? 'square' : 'dot' },
