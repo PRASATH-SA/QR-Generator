@@ -8,6 +8,19 @@ import Terms from './pages/Terms';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentTerms from './pages/PaymentTerms';
 import { QrCode } from 'lucide-react';
+import heroLogo from './assets/hero.png';
+
+const SplashScreen = ({ onFinish }) => {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999, background: 'var(--bg-color)',
+      display: 'flex', justifyContent: 'center', alignItems: 'center',
+      animation: 'fadeOut 0.5s ease 2s forwards'
+    }}>
+      <img src={heroLogo} alt="Splash Logo" className="animate-fade-in" style={{ width: '150px', animation: 'pulse 1s infinite alternate' }} />
+    </div>
+  );
+};
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -22,7 +35,7 @@ const Navbar = () => {
   return (
     <nav className="container navbar">
       <Link to="/" className="nav-logo text-gradient">
-        <QrCode size={32} />
+        <img src={heroLogo} alt="QRGenius Logo" style={{ height: '32px', objectFit: 'contain' }} />
         QRGenius
       </Link>
       <div className="nav-links">
@@ -54,8 +67,23 @@ const Footer = () => (
 );
 
 function App() {
+  const [showSplash, setShowSplash] = React.useState(false);
+
+  React.useEffect(() => {
+    const hasVisited = localStorage.getItem('hasVisited');
+    if (!hasVisited) {
+      setShowSplash(true);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        localStorage.setItem('hasVisited', 'true');
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   return (
     <Router>
+      {showSplash && <SplashScreen />}
       <Navbar />
       <main style={{ minHeight: 'calc(100vh - 200px)' }}>
         <Routes>

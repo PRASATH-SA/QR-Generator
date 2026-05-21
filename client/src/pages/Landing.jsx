@@ -26,7 +26,7 @@ const Landing = () => {
               <QrCode size={48} />
             </div>
             <h3 style={{ marginBottom: '1rem' }}>Free Tier</h3>
-            <p className="text-muted">Create static and dynamic QR codes with our signature "P" logo embedded perfectly.</p>
+            <p className="text-muted">Create static and dynamic QR codes with our signature logo embedded perfectly.</p>
           </div>
 
           <div className="glass p-card" style={{ textAlign: 'center', border: '1px solid var(--secondary)' }}>
@@ -34,7 +34,7 @@ const Landing = () => {
               <Crown size={48} />
             </div>
             <h3 style={{ marginBottom: '1rem' }}>Premium Customization</h3>
-            <p className="text-muted">Unlock custom logo uploads. Replace the default "P" with your own brand identity.</p>
+            <p className="text-muted">Unlock custom logo uploads. Replace the default logo with your own brand identity.</p>
           </div>
 
           <div className="glass p-card" style={{ textAlign: 'center' }}>
