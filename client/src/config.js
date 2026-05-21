@@ -1,1 +1,1 @@
-export const API_BASE = "https://degrees-wilson-width-sublime.trycloudflare.com";
+export const API_BASE = "https://qr-generator-mu-amber.vercel.app";
