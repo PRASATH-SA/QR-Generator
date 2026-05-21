@@ -381,16 +381,16 @@ const Dashboard = () => {
                   <div style={{ fontSize: '0.75rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>Dynamic ({qr.scans || 0} scans)</div>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <a href={qr.qrImageUrl} download={`qr-${qr._id}.png`} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <a href={qr.qrImageUrl} download={`qr-${qr._id}.png`} className="btn btn-outline" style={{ padding: '0.5rem', flex: '1 1 100%', fontSize: '0.8rem', justifyContent: 'center' }}>
                   <Download size={14} /> DOWNLOAD
                 </a>
                 {qr.type === 'dynamic' && user?.tier === 'paid' && (
-                  <button type="button" onClick={() => handleEditDynamic(qr)} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem' }}>
+                  <button type="button" onClick={() => handleEditDynamic(qr)} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem', justifyContent: 'center' }}>
                     Edit
                   </button>
                 )}
-                <button type="button" onClick={() => handleDeleteQR(qr._id)} className="btn btn-outline" style={{ padding: '0.5rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }} title="Delete QR Code">
+                <button type="button" onClick={() => handleDeleteQR(qr._id)} className="btn btn-outline" style={{ padding: '0.5rem', flex: 1, color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', justifyContent: 'center' }} title="Delete QR Code">
                   <Trash2 size={14} />
                 </button>
               </div>
