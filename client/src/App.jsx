@@ -34,9 +34,8 @@ const Navbar = () => {
 
   return (
     <nav className="container navbar">
-      <Link to="/" className="nav-logo text-gradient">
-        <img src={heroLogo} alt="QRGenius Logo" style={{ height: '32px', objectFit: 'contain' }} />
-        QRGenius
+      <Link to="/" className="nav-logo">
+        <img src={heroLogo} alt="QRGenius Logo" style={{ height: '40px', objectFit: 'contain' }} />
       </Link>
       <div className="nav-links">
         {token ? (
