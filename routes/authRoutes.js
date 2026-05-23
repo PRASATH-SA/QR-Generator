@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { validate: validateEmail } = require('deep-email-validator');
 
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.zoho.in',
@@ -40,6 +41,27 @@ const authenticate = (req, res, next) => {
 router.post('/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
+
+        // Verify email using regex and SMTP
+        const emailValidationResult = await validateEmail({
+            email: email,
+            validateRegex: true,
+            validateMx: true,
+            validateTypo: true,
+            validateDisposable: true,
+            validateSMTP: true,
+        });
+
+        if (!emailValidationResult.valid) {
+            let reasonStr = emailValidationResult.reason;
+            if (reasonStr === 'smtp') {
+                reasonStr = 'SMTP mailbox verification failed (mailbox may not exist).';
+            }
+            return res.status(400).json({ 
+                error: `Email verification failed: ${reasonStr}` 
+            });
+        }
+
         const existingUser = await User.findOne({ email });
 
         if (existingUser && existingUser.isVerified) {
