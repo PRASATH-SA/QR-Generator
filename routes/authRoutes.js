@@ -155,8 +155,11 @@ router.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
-        const token = jwt.sign({ id: user._id, tier: user.tier }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email, tier: user.tier, customLogoUrl: user.customLogoUrl } });
+        user.lastLogin = new Date();
+        await user.save();
+
+        const token = jwt.sign({ id: user._id, tier: user.tier, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, tier: user.tier, customLogoUrl: user.customLogoUrl, isAdmin: user.isAdmin, lastLogin: user.lastLogin } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

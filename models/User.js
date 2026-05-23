@@ -8,7 +8,9 @@ const userSchema = new mongoose.Schema({
     customLogoUrl: { type: String, default: null },
     isVerified: { type: Boolean, default: false },
     verificationOTP: { type: String, default: null },
-    otpExpires: { type: Date, default: null }
+    otpExpires: { type: Date, default: null },
+    isAdmin: { type: Boolean, default: false },
+    lastLogin: { type: Date, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

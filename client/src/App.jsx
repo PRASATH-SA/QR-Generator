@@ -4,6 +4,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import Terms from './pages/Terms';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentTerms from './pages/PaymentTerms';
@@ -25,6 +26,8 @@ const SplashScreen = ({ onFinish }) => {
 const Navbar = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  const userObj = userStr ? JSON.parse(userStr) : null;
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -40,6 +43,9 @@ const Navbar = () => {
       <div className="nav-links">
         {token ? (
           <>
+            {userObj?.isAdmin && (
+              <Link to="/admin" className="nav-link" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Admin Panel</Link>
+            )}
             <Link to="/dashboard" className="nav-link">Dashboard</Link>
             <button onClick={handleLogout} className="btn btn-outline">Logout</button>
           </>
@@ -90,6 +96,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard user={JSON.parse(localStorage.getItem('user') || 'null')} />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/payment-terms" element={<PaymentTerms />} />

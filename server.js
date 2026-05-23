@@ -9,6 +9,7 @@ dotenv.config();
 const authRoutes = require('./routes/authRoutes');
 const qrRoutes = require('./routes/qrRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/uploads', express.static(staticUploadsDir));
 app.use('/api/auth', authRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Monolithic Setup - Serve React App
 if (!process.env.VERCEL) {
