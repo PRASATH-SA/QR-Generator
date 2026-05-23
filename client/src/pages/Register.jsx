@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, Mail } from 'lucide-react';
+import { UserPlus, Mail, Loader } from 'lucide-react';
 import { API_BASE } from '../config';
 
 const Register = () => {
@@ -10,6 +10,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
@@ -18,12 +19,15 @@ const Register = () => {
     e.preventDefault();
     setError('');
     setMessage('');
+    setIsLoading(true);
     try {
       const res = await axios.post(`${API_BASE}/api/auth/register`, { name, email, password });
       setIsOtpSent(true);
       setMessage(res.data.message);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,8 +64,9 @@ const Register = () => {
               <label>Password</label>
               <input type="password" required className="input-field" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
-            <button type="submit" className="btn btn-primary mt-4" style={{ width: '100%' }}>
-              <UserPlus size={18} /> Register
+            <button type="submit" className="btn btn-primary mt-4" style={{ width: '100%' }} disabled={isLoading}>
+              {isLoading ? <Loader size={18} className="animate-spin" /> : <UserPlus size={18} />} 
+              {isLoading ? ' Verifying Email...' : ' Register'}
             </button>
           </form>
         ) : (
