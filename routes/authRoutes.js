@@ -76,13 +76,13 @@ router.post('/register', async (req, res) => {
             text: `Your OTP for registration is ${otp}. It is valid for 10 minutes.`
         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error("Email error: ", error);
-            }
-        });
-
-        res.status(201).json({ message: 'OTP sent to email. Please verify.', email });
+        try {
+            await transporter.sendMail(mailOptions);
+            res.status(201).json({ message: 'OTP sent to email. Please verify.', email });
+        } catch (error) {
+            console.error("Email send error during register: ", error);
+            return res.status(500).json({ error: 'Failed to send OTP email. Please check your SMTP credentials and try again.' });
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -131,11 +131,13 @@ router.post('/resend-otp', async (req, res) => {
             text: `Your new OTP is ${otp}. It is valid for 10 minutes.`
         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) console.error("Email error: ", error);
-        });
-
-        res.status(200).json({ message: 'OTP resent to email' });
+        try {
+            await transporter.sendMail(mailOptions);
+            res.status(200).json({ message: 'OTP resent to email' });
+        } catch (error) {
+            console.error("Email send error during resend-otp: ", error);
+            return res.status(500).json({ error: 'Failed to send OTP email. Please check your SMTP credentials and try again.' });
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
