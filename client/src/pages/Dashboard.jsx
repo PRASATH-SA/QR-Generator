@@ -59,7 +59,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (qrRef.current && user) {
       const logoUrl = user.tier === 'free' ? appLogo : (customLogo || (user.customLogoUrl ? (user.customLogoUrl.startsWith('http') ? user.customLogoUrl : `${API_BASE}${user.customLogoUrl}`) : appLogo));
-      const qrPreviewData = qrType === 'dynamic' ? `https://qr.prasath.in/api/qr/d/${shortId}` : (computedData || 'https://qrgenius.prasath.in');
+      const qrPreviewData = qrType === 'dynamic' ? `https://qrgenius.prasath.in/api/qr/d/${shortId}` : (computedData || 'https://qrgenius.prasath.in');
 
       qrCode.current.update({
         data: qrPreviewData,
